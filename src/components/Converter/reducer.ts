@@ -1,4 +1,6 @@
+import { ENOLCK } from "constants";
 import { Currency } from "../../types/Currency";
+import { performConversion } from "../../utils/performConversion";
 
 const currencies: Currency[] = [
   {
@@ -8,10 +10,6 @@ const currencies: Currency[] = [
   {
     code: "EUR",
     name: "€",
-  },
-  {
-    code: "BTC",
-    name: "฿",
   },
   {
     code: "JPY",
@@ -80,25 +78,26 @@ function changeCurrencyReducer(
   state: ConverterState,
   payload: ChangeCurrencyAction["payload"]
 ): ConverterState {
-  const copyElements = [...state.elements];
-  const positionToChange = state.elements.findIndex(
-    (el) => el.currency.code === payload.from
-  );
+  const newElementsState = [...state.elements].map((el) => {
+    if (el.currency.code === payload.from) {
+      const newCurrencyObj = currencies.find(
+        (currency) => currency.code === payload.to
+      );
+      if (!newCurrencyObj) {
+        throw new Error("Invalid currency code!");
+      }
+      return {
+        currency: newCurrencyObj,
+        amount: performConversion(payload.from, payload.to, el.amount),
+      };
+    }
 
-  const newCurrencyObj = currencies.find((el) => el.code === payload.to);
-
-  if (!newCurrencyObj) {
-    throw new Error("Invalid currency code!");
-  }
-
-  copyElements[positionToChange] = {
-    currency: newCurrencyObj,
-    amount: state.elements[positionToChange].amount,
-  };
+    return el;
+  });
 
   const newState = {
     ...state,
-    elements: copyElements,
+    elements: newElementsState,
   };
   return newState;
 }
@@ -107,12 +106,21 @@ function changeAmountReducer(
   state: ConverterState,
   payload: ChangeAmountAction["payload"]
 ): ConverterState {
-  const copyElements = [...state.elements];
-  const positionToChange = state.elements.findIndex(
-    (el) => el.currency.code === payload.currency.code
-  );
-  copyElements[positionToChange] = { ...payload };
+  const newElementsState = [...state.elements].map((el) => {
+    if (el.currency.code === payload.currency.code) {
+      return payload;
+    }
 
-  const newState = { ...state, elements: copyElements };
+    return {
+      currency: el.currency,
+      amount: performConversion(
+        payload.currency.code,
+        el.currency.code,
+        payload.amount
+      ),
+    };
+  });
+
+  const newState = { ...state, elements: newElementsState };
   return newState;
 }
