@@ -1,23 +1,25 @@
-import React from "react";
+import React, { useReducer } from "react";
 import styled from "styled-components";
 import Card from "@material-ui/core/Card";
 import { CurrencyItem } from "./CurrencyItem";
 import Button from "@material-ui/core/Button";
 import Icon from "@material-ui/core/Icon";
+import { initialState, reducer } from "./reducer";
 
 export const Converter: React.FC = () => {
+  const [state, dispatch] = useReducer(reducer, initialState);
   return (
     <Card>
-      <CurrencyItem
-        onChange={(e) => {
-          console.log(e.target.value);
-        }}
-      />
-      <CurrencyItem
-        onChange={(e) => {
-          console.log(e.target.value);
-        }}
-      />
+      {state.elements.map((el) => (
+        <CurrencyItem
+          key={el.currency.code}
+          currencies={state.availableCurrencies}
+          currency={el.currency}
+          amount={el.amount}
+          dispatch={dispatch}
+        />
+      ))}
+
       {/* TODO implement this feature */}
       <ButtonWrapper>
         <Button

@@ -2,51 +2,72 @@ import React, { ChangeEvent } from "react";
 import styled from "styled-components";
 import TextField from "@material-ui/core/TextField";
 import MenuItem from "@material-ui/core/MenuItem";
+import { Currency } from "../../types/Currency";
+import {
+  ChangeAmountAction,
+  ChangeCurrencyAction,
+  ConverterAction,
+} from "./reducer";
 
 interface ICurrencyItem {
-  onChange: (
-    event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
-  ) => void;
+  currencies: Currency[];
+  currency: Currency;
+  amount: number;
+  dispatch: React.Dispatch<ConverterAction>;
 }
 
-const currencies = [
-  {
-    value: "USD",
-    label: "$",
-  },
-  {
-    value: "EUR",
-    label: "€",
-  },
-  {
-    value: "BTC",
-    label: "฿",
-  },
-  {
-    value: "JPY",
-    label: "¥",
-  },
-];
+export const CurrencyItem: React.FC<ICurrencyItem> = ({
+  dispatch,
+  currencies,
+  currency,
+  amount,
+}) => {
+  const handleCurrencyChange = (value: string) => {
+    const action: ChangeCurrencyAction = {
+      type: "changeCurrency",
+      payload: {
+        from: currency.code,
+        to: value,
+      },
+    };
+    dispatch(action);
+  };
 
-export const CurrencyItem: React.FC<ICurrencyItem> = ({ onChange }) => (
-  <Wrapper>
-    <TextField
-      id="standard-select-currency"
-      select
-      label="Select"
-      value={"EUR"}
-      onChange={onChange}
-      helperText="Please select your currency"
-    >
-      {currencies.map((option) => (
-        <MenuItem key={option.value} value={option.value}>
-          {option.label}
-        </MenuItem>
-      ))}
-    </TextField>
-    <TextField label="Amount" />
-  </Wrapper>
-);
+  const handleAmountChange = (value: number) => {
+    const action: ChangeAmountAction = {
+      type: "changeAmount",
+      payload: {
+        amount: value,
+        currency,
+      },
+    };
+    dispatch(action);
+  };
+  return (
+    <Wrapper>
+      <TextField
+        id="standard-select-currency"
+        select
+        label="Select"
+        value={currency.code}
+        onChange={(e) => handleCurrencyChange(e.target.value)}
+        helperText="Please select your currency"
+      >
+        {currencies.map((option) => (
+          <MenuItem key={option.code} value={option.code}>
+            {option.name ?? option.code}
+          </MenuItem>
+        ))}
+      </TextField>
+      <TextField
+        label="Amount"
+        value={amount}
+        type="number"
+        onChange={(e) => handleAmountChange(Number(e.target.value))}
+      />
+    </Wrapper>
+  );
+};
 
 const Wrapper = styled.div`
   display: flex;
