@@ -1,4 +1,3 @@
-import { ENOLCK } from "constants";
 import { Currency } from "../../types/Currency";
 import { performConversion } from "../../utils/performConversion";
 
