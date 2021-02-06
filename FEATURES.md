@@ -15,3 +15,4 @@
 
 - [ ] Deploy on netlify
 - [ ] Cache API requests
+- [ ] Dark theme
