@@ -102,7 +102,6 @@ export function reducer(
   state: ConverterState,
   action: ConverterAction
 ): ConverterState {
-  console.log({ action });
   switch (action.type) {
     case "initialize":
       return initializeReducer((action as InitializeAction).payload);

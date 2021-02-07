@@ -18,8 +18,6 @@ export function performConversion(
 ) {
   const multiplicationFactor = curerncyTable.rates[to];
 
-  console.log({ curerncyTable, multiplicationFactor, amount });
-
   // Fixes broken float calculations up to 5 decimal digits
   return parseFloat((amount * multiplicationFactor).toFixed(5));
 }

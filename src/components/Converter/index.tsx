@@ -19,7 +19,6 @@ export const Converter: React.FC = () => {
   useEffect(() => {
     const DEFAULT_CURRENCY = "EUR";
     loadConversionTable(DEFAULT_CURRENCY).then((defaultTable) => {
-      console.log({ defaultTable });
       dispatch({
         type: "initialize",
         payload: {

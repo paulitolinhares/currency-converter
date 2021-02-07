@@ -26,7 +26,6 @@ export const CurrencyItem: React.FC<ICurrencyItem> = ({
   amount,
 }) => {
   const dispatchCurrencyTable = debounce((value: number, currencyCode) => {
-    console.log(`loading currencyTable for ${currencyCode}`);
     const action: LoadCurrencyTableAction = {
       type: "loadCurrencyTable",
       payload: {
