@@ -26,7 +26,7 @@ export const Converter: React.FC = () => {
         },
       } as InitializeAction);
     });
-  }, []);
+  }, [dispatch]);
   return (
     <Card>
       {state.elements.map((el) => (
