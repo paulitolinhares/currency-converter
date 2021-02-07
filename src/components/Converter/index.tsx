@@ -1,13 +1,26 @@
-import React, { useReducer } from "react";
+import React, { useReducer, useEffect } from "react";
 import styled from "styled-components";
 import Card from "@material-ui/core/Card";
 import { CurrencyItem } from "./CurrencyItem";
 import Button from "@material-ui/core/Button";
 import Icon from "@material-ui/core/Icon";
-import { initialState, reducer } from "./reducer";
+import { InitializeAction, initialState, reducer } from "./reducer";
+import { loadConversionTable } from "../../utils/apiWrapper";
 
 export const Converter: React.FC = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  useEffect(() => {
+    const DEFAULT_CURRENCY = "EUR";
+    loadConversionTable(DEFAULT_CURRENCY).then((defaultTable) => {
+      console.log({ defaultTable });
+      dispatch({
+        type: "initialize",
+        payload: {
+          currencyTable: defaultTable,
+        },
+      } as InitializeAction);
+    });
+  }, []);
   return (
     <Card>
       {state.elements.map((el) => (

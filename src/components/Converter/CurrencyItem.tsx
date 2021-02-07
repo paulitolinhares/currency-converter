@@ -46,18 +46,19 @@ export const CurrencyItem: React.FC<ICurrencyItem> = ({
   return (
     <Wrapper>
       <TextField
-        id="standard-select-currency"
         select
-        label="Select"
+        label="Currency"
         value={currency.code}
         onChange={(e) => handleCurrencyChange(e.target.value)}
         helperText="Please select your currency"
       >
-        {currencies.map((option) => (
-          <MenuItem key={option.code} value={option.code}>
-            {option.name ?? option.code}
-          </MenuItem>
-        ))}
+        {[currency, ...currencies].map((option) => {
+          return (
+            <MenuItem key={option.code} value={option.code}>
+              {option.name ?? option.code}
+            </MenuItem>
+          );
+        })}
       </TextField>
       <TextField
         label="Amount"

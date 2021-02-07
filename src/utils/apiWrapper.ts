@@ -1,3 +1,5 @@
+import { CurrencyTable } from "../types/CurrencyTable";
+
 const cache = new Map();
 
 /**
@@ -9,7 +11,9 @@ function generateCacheKey(currencyCode: string, dateStamp: string) {
   return `${currencyCode}-${dateStamp}`;
 }
 
-export async function loadConversionTable(baseCurrencyCode: string) {
+export async function loadConversionTable(
+  baseCurrencyCode: string
+): Promise<CurrencyTable> {
   const todayDateStamp = new Date().toISOString().split("T")[0];
   const cacheKey = generateCacheKey(baseCurrencyCode, todayDateStamp);
 

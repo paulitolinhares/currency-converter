@@ -1,4 +1,5 @@
 import { Currency } from "../../types/Currency";
+import { CurrencyTable } from "../../types/CurrencyTable";
 import { performConversion } from "../../utils/performConversion";
 
 const currencies: Currency[] = [
@@ -16,7 +17,7 @@ const currencies: Currency[] = [
   },
 ];
 
-export type ActionType = "changeCurrency" | "changeAmount";
+export type ActionType = "initialize" | "changeCurrency" | "changeAmount";
 
 export interface ConverterAction {
   type: ActionType;
@@ -35,6 +36,13 @@ export interface ChangeAmountAction extends ConverterAction {
   payload: {
     amount: number;
     currency: Currency;
+  };
+}
+
+export interface InitializeAction extends ConverterAction {
+  type: "initialize";
+  payload: {
+    currencyTable: CurrencyTable;
   };
 }
 
@@ -63,6 +71,8 @@ export const initialState: ConverterState = {
 export function reducer(state: ConverterState, action: ConverterAction) {
   console.log({ action });
   switch (action.type) {
+    case "initialize":
+      return initializeReducer((action as InitializeAction).payload);
     case "changeCurrency":
       return changeCurrencyReducer(
         state,
@@ -71,6 +81,47 @@ export function reducer(state: ConverterState, action: ConverterAction) {
     case "changeAmount":
       return changeAmountReducer(state, (action as ChangeAmountAction).payload);
   }
+}
+
+function initializeReducer(payload: InitializeAction["payload"]) {
+  // TODO find something better to use than code as name
+  const baseCurrency = {
+    code: payload.currencyTable.base,
+    name: payload.currencyTable.base,
+  };
+  const secondCurrencyCode = Object.entries(payload.currencyTable.rates)[0][0];
+
+  const secondCurrency = {
+    code: secondCurrencyCode,
+    name: secondCurrencyCode,
+  };
+  const newState = {
+    availableCurrencies: Object.entries(payload.currencyTable.rates)
+      .filter(
+        ([currencyCode]) =>
+          ![payload.currencyTable.base, secondCurrencyCode].includes(
+            currencyCode
+          )
+      )
+      .map(([currencyCode]) => {
+        return {
+          code: currencyCode,
+          name: currencyCode,
+        };
+      }),
+    elements: [
+      {
+        currency: baseCurrency,
+        amount: 0,
+      },
+      {
+        currency: secondCurrency,
+        amount: 0,
+      },
+    ],
+  };
+
+  return newState;
 }
 
 function changeCurrencyReducer(
