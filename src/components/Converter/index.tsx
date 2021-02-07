@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect } from "react";
+import React, { useReducer, useEffect, useCallback } from "react";
 import styled from "styled-components";
 import Card from "@material-ui/core/Card";
 import { CurrencyItem } from "./CurrencyItem";
@@ -15,7 +15,7 @@ import { loadConversionTable } from "../../utils/apiWrapper";
 
 export const Converter: React.FC = () => {
   const [state, hookDispatch] = useReducer(reducer, initialState);
-  const dispatch = asyncMiddleware(hookDispatch);
+  const dispatch = useCallback(asyncMiddleware(hookDispatch), [hookDispatch]);
   useEffect(() => {
     const DEFAULT_CURRENCY = "EUR";
     loadConversionTable(DEFAULT_CURRENCY).then((defaultTable) => {
