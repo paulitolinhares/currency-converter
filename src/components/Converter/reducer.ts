@@ -125,7 +125,6 @@ export function reducer(
 }
 
 function initializeReducer(payload: InitializeAction["payload"]) {
-  // TODO find something better to use than code as name
   const baseCurrency = {
     code: payload.currencyTable.base,
     name: payload.currencyTable.base,

@@ -39,7 +39,6 @@ export const Converter: React.FC = () => {
         />
       ))}
 
-      {/* TODO implement this feature */}
       <ButtonWrapper>
         <Button
           title="Feature not yet available"
