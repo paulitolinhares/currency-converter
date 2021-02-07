@@ -4,11 +4,18 @@ import Card from "@material-ui/core/Card";
 import { CurrencyItem } from "./CurrencyItem";
 import Button from "@material-ui/core/Button";
 import Icon from "@material-ui/core/Icon";
-import { InitializeAction, initialState, reducer } from "./reducer";
+import {
+  asyncMiddleware,
+  InitializeAction,
+  initialState,
+  LoadCurrencyTableAction,
+  reducer,
+} from "./reducer";
 import { loadConversionTable } from "../../utils/apiWrapper";
 
 export const Converter: React.FC = () => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, hookDispatch] = useReducer(reducer, initialState);
+  const dispatch = asyncMiddleware(hookDispatch);
   useEffect(() => {
     const DEFAULT_CURRENCY = "EUR";
     loadConversionTable(DEFAULT_CURRENCY).then((defaultTable) => {
@@ -37,10 +44,19 @@ export const Converter: React.FC = () => {
       <ButtonWrapper>
         <Button
           title="Feature not yet available"
-          disabled
           variant="contained"
           color="primary"
           startIcon={<Icon>add</Icon>}
+          onClick={() => {
+            dispatch({ type: "addCurrency" });
+            dispatch({
+              type: "loadCurrencyTable",
+              payload: {
+                currencyCode: state.elements[0].currency.code,
+                amount: state.elements[0].amount,
+              },
+            } as LoadCurrencyTableAction);
+          }}
         >
           Add new currency
         </Button>

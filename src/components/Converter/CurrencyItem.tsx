@@ -7,7 +7,10 @@ import {
   ChangeAmountAction,
   ChangeCurrencyAction,
   ConverterAction,
+  LoadCurrencyTableAction,
 } from "./reducer";
+
+import debounce from "lodash.debounce";
 
 interface ICurrencyItem {
   currencies: Currency[];
@@ -22,15 +25,30 @@ export const CurrencyItem: React.FC<ICurrencyItem> = ({
   currency,
   amount,
 }) => {
+  const dispatchCurrencyTable = debounce((value: number, currencyCode) => {
+    console.log(`loading currencyTable for ${currencyCode}`);
+    const action: LoadCurrencyTableAction = {
+      type: "loadCurrencyTable",
+      payload: {
+        currencyCode,
+        amount: value,
+      },
+    };
+
+    dispatch(action);
+  }, 1000);
+
   const handleCurrencyChange = (value: string) => {
     const action: ChangeCurrencyAction = {
       type: "changeCurrency",
       payload: {
         from: currency.code,
         to: value,
+        amount,
       },
     };
     dispatch(action);
+    dispatchCurrencyTable(amount, value);
   };
 
   const handleAmountChange = (value: number) => {
@@ -42,6 +60,7 @@ export const CurrencyItem: React.FC<ICurrencyItem> = ({
       },
     };
     dispatch(action);
+    dispatchCurrencyTable(value, currency.code);
   };
   return (
     <Wrapper>

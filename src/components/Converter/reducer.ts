@@ -1,23 +1,16 @@
+import { Dispatch } from "react";
 import { Currency } from "../../types/Currency";
 import { CurrencyTable } from "../../types/CurrencyTable";
+import { loadConversionTable } from "../../utils/apiWrapper";
 import { performConversion } from "../../utils/performConversion";
 
-const currencies: Currency[] = [
-  {
-    code: "USD",
-    name: "$",
-  },
-  {
-    code: "EUR",
-    name: "€",
-  },
-  {
-    code: "JPY",
-    name: "¥",
-  },
-];
-
-export type ActionType = "initialize" | "changeCurrency" | "changeAmount";
+export type ActionType =
+  | "initialize"
+  | "changeCurrency"
+  | "changeAmount"
+  | "loadCurrencyTable"
+  | "updateCurrencyTable"
+  | "addCurrency";
 
 export interface ConverterAction {
   type: ActionType;
@@ -28,6 +21,7 @@ export interface ChangeCurrencyAction extends ConverterAction {
   payload: {
     from: Currency["code"];
     to: Currency["code"];
+    amount: number;
   };
 }
 
@@ -46,6 +40,27 @@ export interface InitializeAction extends ConverterAction {
   };
 }
 
+export interface LoadCurrencyTableAction extends ConverterAction {
+  type: "loadCurrencyTable";
+  payload: {
+    currencyCode: Currency["code"];
+    amount: number;
+  };
+}
+
+export interface UpdateCurrencyTableAction extends ConverterAction {
+  type: "updateCurrencyTable";
+  payload: {
+    currencyCode: Currency["code"];
+    currencyTable: CurrencyTable;
+    amount: number;
+  };
+}
+
+export interface AddCurrencyAction extends ConverterAction {
+  type: "addCurrency";
+}
+
 interface ConverterState {
   availableCurrencies: Currency[];
   elements: Array<{
@@ -55,20 +70,38 @@ interface ConverterState {
 }
 
 export const initialState: ConverterState = {
-  availableCurrencies: currencies,
-  elements: [
-    {
-      currency: currencies[0],
-      amount: 0,
-    },
-    {
-      currency: currencies[1],
-      amount: 0,
-    },
-  ],
+  availableCurrencies: [],
+  elements: [],
 };
 
-export function reducer(state: ConverterState, action: ConverterAction) {
+// Place actions that trigger async actions in this middleware
+export function asyncMiddleware(dispatch: Dispatch<ConverterAction>) {
+  return function (action: ConverterAction) {
+    switch (action.type) {
+      case "loadCurrencyTable":
+        const payload = (action as LoadCurrencyTableAction).payload;
+        loadConversionTable(payload.currencyCode).then((currencyTable) => {
+          dispatch({
+            type: "updateCurrencyTable",
+            payload: {
+              currencyTable: currencyTable,
+              currencyCode: payload.currencyCode,
+              amount: payload.amount,
+            },
+          } as UpdateCurrencyTableAction);
+        });
+        break;
+      default:
+        return dispatch(action);
+    }
+  };
+}
+
+// Place synchronous actions here
+export function reducer(
+  state: ConverterState,
+  action: ConverterAction
+): ConverterState {
   console.log({ action });
   switch (action.type) {
     case "initialize":
@@ -80,7 +113,16 @@ export function reducer(state: ConverterState, action: ConverterAction) {
       );
     case "changeAmount":
       return changeAmountReducer(state, (action as ChangeAmountAction).payload);
+    case "updateCurrencyTable":
+      return updateCurrencyTableReducer(
+        state,
+        (action as UpdateCurrencyTableAction).payload
+      );
+    case "addCurrency":
+      return addCurrencyReducer(state);
   }
+
+  return state;
 }
 
 function initializeReducer(payload: InitializeAction["payload"]) {
@@ -130,15 +172,12 @@ function changeCurrencyReducer(
 ): ConverterState {
   const newElementsState = [...state.elements].map((el) => {
     if (el.currency.code === payload.from) {
-      const newCurrencyObj = currencies.find(
-        (currency) => currency.code === payload.to
-      );
-      if (!newCurrencyObj) {
-        throw new Error("Invalid currency code!");
-      }
       return {
-        currency: newCurrencyObj,
-        amount: performConversion(payload.from, payload.to, el.amount),
+        currency: {
+          code: payload.to,
+          name: payload.to,
+        },
+        amount: payload.amount,
       };
     }
 
@@ -161,16 +200,55 @@ function changeAmountReducer(
       return payload;
     }
 
+    return el;
+  });
+
+  const newState = { ...state, elements: newElementsState };
+  return newState;
+}
+
+function updateCurrencyTableReducer(
+  state: ConverterState,
+  payload: UpdateCurrencyTableAction["payload"]
+) {
+  const newElementsState = [...state.elements].map((el) => {
+    const amount =
+      el.currency.code === payload.currencyCode
+        ? el.amount
+        : performConversion(
+            payload.currencyTable,
+            el.currency.code,
+            payload.amount
+          );
     return {
       currency: el.currency,
-      amount: performConversion(
-        payload.currency.code,
-        el.currency.code,
-        payload.amount
-      ),
+      amount,
     };
   });
 
   const newState = { ...state, elements: newElementsState };
+  return newState;
+}
+
+function addCurrencyReducer(state: ConverterState) {
+  const availableCurrenciesCopy = [...state.availableCurrencies];
+  const newCurrency = availableCurrenciesCopy.shift();
+
+  if (!newCurrency) {
+    throw new Error("Not enough currencies available");
+  }
+
+  const newState = {
+    ...state,
+    availableCurrencies: availableCurrenciesCopy,
+    elements: [
+      ...state.elements,
+      {
+        currency: newCurrency,
+        amount: 0,
+      },
+    ],
+  };
+
   return newState;
 }
