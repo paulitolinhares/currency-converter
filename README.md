@@ -4,7 +4,7 @@ This is a simple currency converter that uses https://exchangeratesapi.io/ as a 
 
 ## Features
 
-The features are listed in [FEATURE.MD](./FEATURE.MD)
+The features are listed in [FEATURES.md](./FEATURES.md)
 
 ## Tech Stack
 
